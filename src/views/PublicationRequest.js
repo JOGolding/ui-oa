@@ -12,7 +12,7 @@ const propTypes = {
   }).isRequired
 };
 
-const publicationRequest = ({ handlers }) => {
+const PublicationRequest = ({ handlers }) => {
   const paneProps = {
     defaultWidth: '55%',
     dismissible: true,
@@ -28,6 +28,6 @@ const publicationRequest = ({ handlers }) => {
   );
 };
 
-publicationRequest.propTypes = propTypes;
+PublicationRequest.propTypes = propTypes;
 
-export default publicationRequest;
+export default PublicationRequest;

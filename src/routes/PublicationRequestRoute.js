@@ -3,7 +3,7 @@ import React from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
 import urls from '../util/urls';
 
-import View from '../views/publicationRequest';
+import View from '../views/PublicationRequest';
 
 const propTypes = {};
 

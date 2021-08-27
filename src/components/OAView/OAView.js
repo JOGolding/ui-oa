@@ -2,8 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {
+  checkScope,
   Button,
   ButtonGroup,
+  HasCommand,
   MultiColumnList,
   Pane,
   PaneMenu,
@@ -42,6 +44,17 @@ const OAView = ({
 }) => {
   const history = useHistory();
 
+  const goToNew = () => {
+    history.push(`${urls.publicationRequestCreate()}${searchString}`);
+  };
+
+  const shortcuts = [
+    {
+      name: 'new',
+      handler: goToNew,
+    },
+  ];
+
   const formatter = {
     requestStatus: e => {
       return e?.requestStatus?.label;
@@ -49,104 +62,110 @@ const OAView = ({
   };
 
   return (
-    <SearchAndSortQuery
-      initialSearchState={{ query: '' }}
-      queryGetter={queryGetter}
-      querySetter={querySetter}
+   <HasCommand
+      commands={shortcuts}
+      isWithinScope={checkScope}
+      scope={document.body}
     >
-      {
-        ({
-          searchValue,
-          getSearchHandlers,
-          onSubmitSearch,
-          activeFilters,
-          getFilterHandlers,
-          onSort
-        }) => (
-          <div>
-            <PersistedPaneset
-              appId="@folio/oa"
-              id="oa-paneset"
-            >
-              <Pane
-                defaultWidth="20%"
-                paneTitle={<FormattedMessage id="stripes-smart-components.searchAndFilter" />}
+      <SearchAndSortQuery
+        initialSearchState={{ query: '' }}
+        queryGetter={queryGetter}
+        querySetter={querySetter}
+      >
+        {
+          ({
+            searchValue,
+            getSearchHandlers,
+            onSubmitSearch,
+            activeFilters,
+            getFilterHandlers,
+            onSort
+          }) => (
+            <div>
+              <PersistedPaneset
+                appId="@folio/oa"
+                id="oa-paneset"
               >
-                <form onSubmit={onSubmitSearch}>
-                  <ButtonGroup fullWidth>
+                <Pane
+                  defaultWidth="20%"
+                  paneTitle={<FormattedMessage id="stripes-smart-components.searchAndFilter" />}
+                >
+                  <form onSubmit={onSubmitSearch}>
+                    <ButtonGroup fullWidth>
+                      <Button
+                        buttonStyle="primary"
+                        id="clickable-nav-oa-publication-requests"
+                      >
+                        <FormattedMessage id="ui-oa.publicationRequests" />
+                      </Button>
+                      <Button
+                        id="clickable-nav-oa-something-else"
+                        to={urls.publicationRequests()}
+                      >
+                        <FormattedMessage id="ui-oa.publicationRequests" />
+                      </Button>
+                    </ButtonGroup>
+                    <SearchField
+                      autoFocus
+                      className={css.searchField}
+                      marginBottom0
+                      name="query"
+                      onChange={getSearchHandlers().query}
+                      onClear={getSearchHandlers().reset}
+                      value={searchValue.query}
+                    />
                     <Button
                       buttonStyle="primary"
-                      id="clickable-nav-oa-publication-requests"
+                      disabled={!searchValue.query || searchValue.query === ''}
+                      fullWidth
+                      type="submit"
                     >
-                      <FormattedMessage id="ui-oa.publicationRequests" />
+                      <FormattedMessage id="stripes-smart-components.search" />
                     </Button>
-                    <Button
-                      id="clickable-nav-oa-something-else"
-                      to={urls.publicationRequests()}
-                    >
-                      <FormattedMessage id="ui-oa.publicationRequests" />
-                    </Button>
-                  </ButtonGroup>
-                  <SearchField
-                    autoFocus
-                    className={css.searchField}
-                    marginBottom0
-                    name="query"
-                    onChange={getSearchHandlers().query}
-                    onClear={getSearchHandlers().reset}
-                    value={searchValue.query}
+                    <OAFilters
+                      activeFilters={activeFilters.state}
+                      filterHandlers={getFilterHandlers()}
+                    />
+                  </form>
+                </Pane>
+                <Pane
+                  defaultWidth="fill"
+                  lastMenu={(
+                    <IfPermission perm="oa.scholarlyWork.edit">
+                      <PaneMenu>
+                        <FormattedMessage id="ui-oa.publicationRequest.createPublicationRequest">
+                          {ariaLabel => (
+                            <Button
+                              aria-label={ariaLabel}
+                              buttonStyle="primary"
+                              id="clickable-new-scholarly-work"
+                              marginBottom0
+                              to={`${urls.publicationRequestCreate()}`}
+                            >
+                              <FormattedMessage id="stripes-smart-components.new" />
+                            </Button>
+                          )}
+                        </FormattedMessage>
+                      </PaneMenu>
+                    </IfPermission>
+                  )}
+                >
+                  <MultiColumnList
+                    autosize
+                    contentData={data.publicationRequests}
+                    formatter={formatter}
+                    onHeaderClick={onSort}
+                    onRowClick={(_e, rowData) => history.push(`${urls.publicationRequest(rowData.id)}${searchString}`)}
+                    visibleColumns={['requestDate', 'requestStatus']}
                   />
-                  <Button
-                    buttonStyle="primary"
-                    disabled={!searchValue.query || searchValue.query === ''}
-                    fullWidth
-                    type="submit"
-                  >
-                    <FormattedMessage id="stripes-smart-components.search" />
-                  </Button>
-                  <OAFilters
-                    activeFilters={activeFilters.state}
-                    filterHandlers={getFilterHandlers()}
-                  />
-                </form>
-              </Pane>
-              <Pane
-                defaultWidth="fill"
-                lastMenu={(
-                  <IfPermission perm="oa.scholarlyWork.edit">
-                    <PaneMenu>
-                      <FormattedMessage id="ui-oa.publicationRequest.createPublicationRequest">
-                        {ariaLabel => (
-                          <Button
-                            aria-label={ariaLabel}
-                            buttonStyle="primary"
-                            id="clickable-new-scholarly-work"
-                            marginBottom0
-                            to={`${urls.publicationRequestCreate()}`}
-                          >
-                            <FormattedMessage id="stripes-smart-components.new" />
-                          </Button>
-                        )}
-                      </FormattedMessage>
-                    </PaneMenu>
-                  </IfPermission>
-                )}
-              >
-                <MultiColumnList
-                  autosize
-                  contentData={data.publicationRequests}
-                  formatter={formatter}
-                  onHeaderClick={onSort}
-                  onRowClick={(_e, rowData) => history.push(`${urls.publicationRequest(rowData.id)}${searchString}`)}
-                  visibleColumns={['requestDate', 'requestStatus']}
-                />
-              </Pane>
-              {children}
-            </PersistedPaneset>
-          </div>
-        )
-      }
-    </SearchAndSortQuery>
+                </Pane>
+                {children}
+              </PersistedPaneset>
+            </div>
+          )
+        }
+      </SearchAndSortQuery>
+    </HasCommand>
   );
 };
 
